@@ -1,0 +1,61 @@
+function ideal_coronagraph_draw_modes_1D(ideal_coronagraph, pupil, sci, pupil_figure_number, image_figure_number, image_figure_number2, style);
+
+colors = [
+    0         0         0     ;
+    0         0.4470    0.7410;
+    0.8500    0.3250    0.0980;
+    0.9290    0.6940    0.1250;
+    0.4940    0.1840    0.5560;
+    0.4660    0.6740    0.1880;
+    0.3010    0.7450    0.9330;
+    0.6350    0.0780    0.1840];
+
+V = ideal_coronagraph.V;
+U = ideal_coronagraph.U;
+
+[N_max m] = Noll(size(V,2));
+N_pupil = sqrt(size(V,1));
+N_sci = sqrt(size(U,1));
+N_max = N_max + 1;
+
+figure(pupil_figure_number)
+for k1 = 1:size(V,2)
+    [n m] = Noll(k1);
+    v = reshape(V(:,k1), N_pupil, N_pupil);
+    vr2 = azimuthal_average(abs(v).^2, pupil.rr, pupil.r)/pupil.dx/pupil.dy;
+    plot(pupil.r, vr2*pupil.Area/(n+1), 'Color', colors(n+1,:), 'LineStyle', style); grid on; hold on;
+    xlabel('r_{pup}'); ylabel('Intensity'); title('|v_n(r)|^2 \times ||A||^2 / (n+1)');
+end
+
+row = -1;
+for k1 = 1:size(U,2)
+    [n m] = Noll(k1);
+    u = reshape(U(:,k1), N_sci, N_sci);
+    ur2 = azimuthal_average(abs(u).^2, sci.rr, sci.r)/sci.dx/sci.dy;
+    if n ~= row % new row, plot the accumulated star mode and start a new star mode
+        if n>0
+            figure(image_figure_number2);
+            plot(sci.r, ur2_star/pupil.Area, 'Color', colors(n,:), 'LineStyle', style); grid on; hold on;
+        end
+        row = n;
+        ur2_star = ur2;
+    else
+        ur2_star = ur2_star + ur2;
+    end
+    figure(image_figure_number);
+    plot(sci.r, (n+1)*ur2/pupil.Area, 'Color', colors(n+1,:), 'LineStyle', style); grid on; hold on;
+end
+figure(image_figure_number2);
+plot(sci.r, ur2_star/pupil.Area, 'Color', colors(n+1,:), 'LineStyle', style); grid on; hold on;
+xlabel('\theta_{sci}'); ylabel('Intensity'); title('\Sigma|u_n^m(r)|^2 / ||A||^2');
+figure(image_figure_number);
+xlabel('\theta_{sci}'); ylabel('Intensity'); title('|u_n^m(r)|^2 \times (n+1) / ||A||^2');
+
+% for k1 = 1:size(U,2)
+%     [n m] = Noll(k1);
+%     u = reshape(U(:,k1), N_sci, N_sci);
+%     ur2 = azimuthal_average(abs(u).^2, sci.rr, sci.r)/sci.dx/sci.dy;
+%     plot(sci.r, (n+1)*ur2/pupil.Area, 'Color', colors(n+1,:), 'LineStyle', style); grid on; hold on;
+%     xlabel('\theta_{sci}'); ylabel('Intensity'); title('|u_n(r)|^2 \times (n+1)/||A||^2');
+% end
+figure(image_figure_number2)

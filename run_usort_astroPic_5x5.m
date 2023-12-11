@@ -11,7 +11,7 @@ zernPath= 'Zernike\';
 idealCoroPath = 'idealCoronagraph\'
 elementsPath = 'opticalElements\'
 addpath(libPath);
-addpath(utilPath);cmd
+addpath(utilPath);
 addpath(propPath);
 addpath(zernPath);
 addpath(idealCoroPath);

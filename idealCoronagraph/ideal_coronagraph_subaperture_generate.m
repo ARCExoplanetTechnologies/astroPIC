@@ -18,8 +18,7 @@ for k = 1:N_modes
 
     for ia = 1:a
         for ib = 1:b
-            %v_subap(ia,ib) = sum(sum(v.*inputCoupling.array{ia,ib}))/sum(sum(v))/sum(sum(inputCoupling.array{ia,ib}));%dot(v,inputCoupling.array{ia,ib});
-            v_subap(ia,ib) = overlap_integral(v,inputCoupling.array{ia,ib},pupil);
+            v_subap(ia,ib) = mode_matching(v,inputCoupling.array{ia,ib},pupil);
         end
     end
     

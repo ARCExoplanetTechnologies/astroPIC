@@ -1,9 +1,9 @@
-function ideal_coronagraph = ideal_coronagraph_generate(N2_max, pupil, inputCoupling, sci);
+function ideal_coronagraph = ideal_coronagraph_subaperture_generate(N2_max, pupil, inputCoupling, sci);
 
 % N2_max: order of the coronagraph (2nd, 4th, etc.)
 % N: number of samples in the pupil plane
 % pupil: contains the pupil grid and aperture
-% inputCoupling: subapertures and submodes defined for input coupler
+% 
 
 N_modes = N2_max*(N2_max/2+1)/4;
 
@@ -12,7 +12,18 @@ for k = 1:N_modes
     
     % initial polynomial Zernike basis, not necessarily orthonormal
     v = 1/(pupil.D/2) * pupil.A.*Zernike2D_complex_norm(n,m, pupil.rr/(pupil.D/2), pupil.ttheta); % normalized Zernike mode, times the aperture
-    v1D = v(:); %reshape(v, prod(size(v)),1);
+    %v1D = v(:); %reshape(v, prod(size(v)),1);
+
+    [a b] = size(inputCoupling.array);
+
+    for ia = 1:a
+        for ib = 1:b
+            %v_subap(ia,ib) = sum(sum(v.*inputCoupling.array{ia,ib}))/sum(sum(v))/sum(sum(inputCoupling.array{ia,ib}));%dot(v,inputCoupling.array{ia,ib});
+            v_subap(ia,ib) = overlap_integral(v,inputCoupling.array{ia,ib},pupil);
+        end
+    end
+    
+    v1D = v_subap(:); 
     
     % Orthogonalize
     if k > 1
@@ -29,8 +40,8 @@ end
 % create sci plane modes
 for k = 1:N_modes
     [n m] = Noll(k);
-    v = reshape(V(:,k), size(v))/sqrt(pupil.dx*pupil.dy);
-    u = 1i*zoomFFT_realunits(pupil.x, pupil.y, v, sci.x, sci.y, sci.f, sci.lambda);
+    v = reshape(V(:,k), size(v_subap))/sqrt(inputCoupling.dx*inputCoupling.dy);
+    u = 1i*zoomFFT_realunits(inputCoupling.x, inputCoupling.y, v, sci.x, sci.y, sci.f, sci.lambda);
     U(:,k) = reshape(u, prod(size(u)), 1)*sqrt(sci.dx*sci.dy);
 end
 

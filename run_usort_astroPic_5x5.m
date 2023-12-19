@@ -49,7 +49,7 @@ sci.lambda = 1;
 sci.flD = sci.f*sci.lambda/pupil.D;
 
 disp('Generating coronagraph...'); 
-ideal_coronagraph = ideal_coronagraph_generate(N2, pupil, sci);
+ideal_coronagraph = ideal_coronagraph_subaperture_generate(N2, pupil, inputCoupling, sci);
 ideal_coronagraph_draw_modes(ideal_coronagraph, 1, 2); % second and third arguments are figure numbers
 
 %% Compute off-axis PSF
@@ -58,8 +58,16 @@ theta_sky = [0.5 0.5]; % angle of off-axis point source
 % create tip/tilt
 %pupil.E = pupil.A.*exp(2*pi*1i*(pupil.xx * theta_sky(1) + pupil.yy * theta_sky(2))/pupil.D)/sqrt(pupil.Area); % energy normalized
 pupil.E = pupil.A.*exp(2*pi*1i*(pupil.xx * theta_sky(1) + pupil.yy * theta_sky(2))/pupil.D)/pupil.Area; % contrast units
+
+[a b] = size(inputCoupling.array);
+for ia = 1:a
+    for ib = 1:b
+        inputCoupling.E(ia,ib) = overlap_integral(pupil.E,inputCoupling.array{ia,ib},pupil);
+    end
+end
+%inputCoupling.E = inputCoupling.A.*exp(2*pi*1i*(pupil.xx * theta_sky(1) + pupil.yy * theta_sky(2))/pupil.D)/pupil.Area
     
-Elyot = ideal_coronagraph_pupil_to_lyot(N2, ideal_coronagraph, pupil);
+Elyot = ideal_coronagraph_pupil_to_lyot(N2, ideal_coronagraph, inputCoupling);
 sci.E = 1i*zoomFFT_realunits(pupil.x, pupil.y, Elyot, sci.x, sci.y, sci.f, sci.lambda);
 
 figure(3)

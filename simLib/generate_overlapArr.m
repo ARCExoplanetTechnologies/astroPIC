@@ -5,6 +5,8 @@ Nlensy = params.Nlensy;
 
 gaussianSigma = (pupil.D/Nlensx*params.sigma);
 
+inputCoupling = make2Dgrid(Nlensx, pupil.D, 'pixel-centered'); %assumes square grid, and pixel-centered 
+inputCoupling.D = pupil.D;
 inputCoupling.A = zeros(size(pupil.xx));
 
 Cx = pupil.D/(Nlensx);
@@ -29,6 +31,7 @@ for qx = 1:Nlensx
         inputCoupling.A = inputCoupling.A + couplingMode{qx,qy};
     end
 end
+
 
 inputCoupling.array = couplingMode;
 inputCoupling.gaussianSigma = gaussianSigma;

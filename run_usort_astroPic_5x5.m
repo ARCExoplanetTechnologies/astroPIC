@@ -50,7 +50,7 @@ sci.flD = sci.f*sci.lambda/pupil.D;
 
 disp('Generating coronagraph...'); 
 ideal_coronagraph = ideal_coronagraph_subaperture_generate(N2, pupil, inputCoupling, sci);
-ideal_coronagraph_draw_modes(ideal_coronagraph, 1, 2); % second and third arguments are figure numbers
+ideal_coronagraph_draw_modes(ideal_coronagraph, 3, 4); % second and third arguments are figure numbers
 
 %% Compute off-axis PSF
 theta_sky = [0.5 0.5]; % angle of off-axis point source

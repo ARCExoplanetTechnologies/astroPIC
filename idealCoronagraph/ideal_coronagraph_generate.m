@@ -1,9 +1,8 @@
-function ideal_coronagraph = ideal_coronagraph_generate(N2_max, pupil, inputCoupling, sci);
+function ideal_coronagraph = ideal_coronagraph_generate(N2_max, pupil, sci);
 
 % N2_max: order of the coronagraph (2nd, 4th, etc.)
 % N: number of samples in the pupil plane
 % pupil: contains the pupil grid and aperture
-% inputCoupling: subapertures and submodes defined for input coupler
 
 N_modes = N2_max*(N2_max/2+1)/4;
 

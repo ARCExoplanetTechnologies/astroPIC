@@ -4,6 +4,9 @@
 
 clear all;
 
+profilerFlag = true;
+if profilerFlag; profile on; end
+
 libPath = 'simLib\';
 propPath= 'propLib\';
 utilPath = 'misc_utilities\';
@@ -16,6 +19,7 @@ addpath(propPath);
 addpath(zernPath);
 addpath(idealCoroPath);
 addpath(elementsPath);
+
 
 N2 = 10; %order of the optimal coronagraph
 
@@ -65,6 +69,7 @@ for ia = 1:a
         inputCoupling.E(ia,ib) = input_coupling(pupil.E,inputCoupling.array{ia,ib},pupil);
     end
 end
+
 %inputCoupling.E = inputCoupling.A.*exp(2*pi*1i*(pupil.xx * theta_sky(1) + pupil.yy * theta_sky(2))/pupil.D)/pupil.Area
     
 Elyot = ideal_coronagraph_pupil_to_lyot(N2, ideal_coronagraph, inputCoupling);
@@ -79,3 +84,4 @@ disp('Computing Tc / flat field...');
 ideal_coronagraph.Tc = ideal_coronagraph_Tc(ideal_coronagraph); 
 ideal_coronagraph_Tc_display(ideal_coronagraph, sci, 5, 6, 1); 
 
+if profilerFlag; profile viewer; end

@@ -4,6 +4,9 @@
 
 clear all;
 
+profilerFlag = true;
+if profilerFlag; profile on; end
+
 libPath = 'simLib\';
 propPath= 'propLib\';
 utilPath = 'misc_utilities\';
@@ -51,3 +54,4 @@ disp('Computing Tc / flat field...');
 ideal_coronagraph.Tc = ideal_coronagraph_Tc(ideal_coronagraph); 
 ideal_coronagraph_Tc_display(ideal_coronagraph, sci, 5, 6, 1); 
 
+if profilerFlag; profile viewer; end

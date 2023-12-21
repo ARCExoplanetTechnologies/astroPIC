@@ -21,7 +21,7 @@ addpath(idealCoroPath);
 addpath(elementsPath);
 
 
-N2 = 10; %order of the optimal coronagraph
+N2 = 6; %order of the optimal coronagraph
 
 % Define pupil plane and telescope aperture
 pupil = pupil_generate('pupil_offaxis_1024.fits', 1, 'circumscribed', 'vertex-centered'); % second argument is pupil diameter
@@ -75,7 +75,7 @@ end
 Elyot = ideal_coronagraph_pupil_to_lyot(N2, ideal_coronagraph, inputCoupling);
 sci.E = 1i*zoomFFT_realunits(pupil.x, pupil.y, Elyot, sci.x, sci.y, sci.f, sci.lambda);
 
-figure(3)
+figure(7)
 imagesc(sci.x, sci.y, abs(sci.E).^2); 
 xlabel('\theta_{sci}'); ylabel('\theta_{sci}'); axis image; colorbar;
 title(sprintf('Off-axis PSF for \\theta_{sky}=(%0.1f,%0.1f)', theta_sky(1), theta_sky(2))); 
@@ -83,5 +83,52 @@ title(sprintf('Off-axis PSF for \\theta_{sky}=(%0.1f,%0.1f)', theta_sky(1), thet
 disp('Computing Tc / flat field...');                   
 ideal_coronagraph.Tc = ideal_coronagraph_Tc(ideal_coronagraph); 
 ideal_coronagraph_Tc_display(ideal_coronagraph, sci, 5, 6, 1); 
+
+
+
+%% create tip/tilt test profile
+Narr = 21;
+tiltArr = linspace(0,0,Narr)
+%tipArr = linspace(0,2.5,Narr)
+tipArr = logspace(-4,log10(2.5),Narr)
+
+
+for iArr = 1:Narr
+    thisTilt = tiltArr(iArr);
+    thisTip = tipArr(iArr);
+
+    pupil.E = pupil.A.*exp(2*pi*1i*(pupil.xx * thisTilt + pupil.yy * thisTip)/pupil.D)/pupil.Area; % contrast units
+
+    for ia = 1:a
+        for ib = 1:b
+            inputCoupling.E(ia,ib) = input_coupling(pupil.E,inputCoupling.array{ia,ib},pupil);
+        end
+    end
+
+    Elyot = ideal_coronagraph_pupil_to_lyot(N2, ideal_coronagraph, inputCoupling);
+    sci.E = 1i*zoomFFT_realunits(pupil.x, pupil.y, Elyot, sci.x, sci.y, sci.f, sci.lambda);
+
+    IlyotArr(iArr) = sum(abs(Elyot).^2,'all');
+    IsciArr(iArr) = sum(abs(sci.E).^2,'all');
+
+    figure(10)
+    imagesc(sci.x, sci.y, abs(sci.E).^2); 
+    xlabel('\theta_{sci}'); ylabel('\theta_{sci}'); axis image; colorbar;
+    title(sprintf('Off-axis PSF for \\theta_{sky}=(%0.1f,%0.1f)', thisTilt, thisTip)); 
+    pause(0.1)
+end
+
+
+figure(11)
+loglog(tipArr,IlyotArr./max(IlyotArr))
+title('Energy in Lyot Plane as function of Tip')
+xlabel('Sky L/D')
+ylabel('Normalized with respect to peak off-axis energy')
+
+figure(12)
+loglog(tipArr,IsciArr./max(IsciArr))
+xlabel('Sky L/D')
+ylabel('Normalized with respect to peak off-axis energy')
+title('Energy in Sci Plane as function of Tip')
 
 if profilerFlag; profile viewer; end

@@ -62,7 +62,7 @@ pupil.E = pupil.A.*exp(2*pi*1i*(pupil.xx * theta_sky(1) + pupil.yy * theta_sky(2
 [a b] = size(inputCoupling.array);
 for ia = 1:a
     for ib = 1:b
-        inputCoupling.E(ia,ib) = mode_matching(pupil.E,inputCoupling.array{ia,ib},pupil);
+        inputCoupling.E(ia,ib) = input_coupling(pupil.E,inputCoupling.array{ia,ib},pupil);
     end
 end
 %inputCoupling.E = inputCoupling.A.*exp(2*pi*1i*(pupil.xx * theta_sky(1) + pupil.yy * theta_sky(2))/pupil.D)/pupil.Area

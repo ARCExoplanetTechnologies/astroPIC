@@ -76,9 +76,9 @@ end
 E2 = transpose(conj(pupil.E(:))/norm(pupil.E(:),2))*transpose(inputCoupling.M);
 E2pup = reshape(E2,[5,5])
 
-figure(); imagesc(abs(inputCoupling.E)); axis image; title('Original')
-figure(); imagesc(abs(E2pup)); axis image; title('E2pup')
-
+%figure(); imagesc(abs(inputCoupling.E)); axis image; title('Original')
+%figure(); imagesc(abs(E2pup)); axis image; title('E2pup')
+figure(); imagesc(abs(inputCoupling.E - E2pup)); title('Direct overlap integral vs. Matrix-based coupling'); colorbar;
 
 %inputCoupling.E = inputCoupling.A.*exp(2*pi*1i*(pupil.xx * theta_sky(1) + pupil.yy * theta_sky(2))/pupil.D)/pupil.Area
     

@@ -3,10 +3,12 @@
 % modification of example_3 in ideal_coronagraph library
 
 clear all;
+close all;
 
 profilerFlag = true;
 if profilerFlag; profile on; end
 
+% setup local library paths and load
 libPath = 'simLib\';
 propPath= 'propLib\';
 utilPath = 'misc_utilities\';
@@ -27,6 +29,7 @@ N2 = 6; %order of the optimal coronagraph
 pupil = pupil_generate('pupil_offaxis_1024.fits', 1, 'circumscribed', 'vertex-centered'); % second argument is pupil diameter
 
 % Define input coupling
+params.inputCoupling.N = length(pupil.A); % number of samples across pupil
 params.inputCoupling.Nlensx = 5;
 params.inputCoupling.Nlensy = 5;
 params.inputCoupling.sigma = 1; % Gaussian mode
@@ -73,14 +76,16 @@ for ia = 1:a
     end
 end
 
-inputCoupling.M = transpose(inputCoupling.M);
+inputCoupling.M = transpose(inputCoupling.M); % matrix computation of input-coupling response 
 
-Ecoupled = transpose(conj(pupil.E(:))/norm(pupil.E(:),2))*inputCoupling.M;
-Ecoupled2D = reshape(Ecoupled,[5,5]); % back to 2D
+Ecoupled = transpose(conj(pupil.E(:))/norm(pupil.E(:),2))*inputCoupling.M; %coupling to 5x5 using 
+Ecoupled2D = reshape(Ecoupled,[params.inputCoupling.Nlensx,params.inputCoupling.Nlensy]); % conver to 2D
+EinvCoupled = transpose(Ecoupled(:))*transpose(conj(inputCoupling.M)); % apply the adjoint operator
+EinvCoupled2D = reshape(EinvCoupled,[params.inputCoupling.N,params.inputCoupling.N]); % convert to 2D
 
-%figure(); imagesc(abs(inputCoupling.E)); axis image; title('Original')
-%figure(); imagesc(abs(E2pup)); axis image; title('E2pup')
 figure(); imagesc(abs(inputCoupling.E - Ecoupled2D)); title('Direct overlap integral vs. Matrix-based coupling'); colorbar;
+figure(); imagesc(abs(Ecoupled2D)); title('abs(Ecoupled), 1024x1024')
+figure(); imagesc(abs(EinvCoupled2D)); title('abs(EinvCoupled), 1024x1024')
 
 %inputCoupling.E = inputCoupling.A.*exp(2*pi*1i*(pupil.xx * theta_sky(1) + pupil.yy * theta_sky(2))/pupil.D)/pupil.Area
     
@@ -111,7 +116,7 @@ for iArr = 1:Narr
 
     for ia = 1:a
         for ib = 1:b
-            inputCoupling.E(ia,ib) = input_coupling(pupil.E,inputCoupling.array{ia,ib},pupil);
+            inputCoupling.E(ib,ia) = input_coupling(pupil.E,inputCoupling.array{ib,ia},pupil);
         end
     end
 

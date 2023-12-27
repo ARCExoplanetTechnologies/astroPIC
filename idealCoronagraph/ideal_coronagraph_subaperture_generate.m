@@ -16,9 +16,9 @@ for k = 1:N_modes
 
     [a b] = size(inputCoupling.array);
 
-    for ia = 1:a
-        for ib = 1:b
-            v_subap(ia,ib) = input_coupling(v,inputCoupling.array{ia,ib},pupil);
+    for ib = 1:a
+        for ia = 1:b
+            v_subap(ib,ia) = input_coupling(v,inputCoupling.array{ib,ia},pupil);
         end
     end
     

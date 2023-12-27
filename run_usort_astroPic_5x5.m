@@ -30,8 +30,8 @@ pupil = pupil_generate('pupil_offaxis_1024.fits', 1, 'circumscribed', 'vertex-ce
 
 % Define input coupling
 params.inputCoupling.N = length(pupil.A); % number of samples across pupil
-params.inputCoupling.Nlensx = 20;
-params.inputCoupling.Nlensy = 20;
+params.inputCoupling.Nlensx = 5;
+params.inputCoupling.Nlensy = 5;
 params.inputCoupling.sigma = 1; % Gaussian mode
 params.inputCoupling.lensD = pupil.D/params.inputCoupling.Nlensx;
 params.inputCoupling.lensShape = 'rectangular'; % choices are 'rectangular', 'circular', or 'none' (subaperture shape; with none there is overlap between Gaussian tails)

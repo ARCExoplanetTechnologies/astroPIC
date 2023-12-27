@@ -73,17 +73,19 @@ for ia = 1:a
     end
 end
 
-E2 = transpose(conj(pupil.E(:))/norm(pupil.E(:),2))*transpose(inputCoupling.M);
-E2pup = reshape(E2,[5,5])
+inputCoupling.M = transpose(inputCoupling.M);
+
+Ecoupled = transpose(conj(pupil.E(:))/norm(pupil.E(:),2))*inputCoupling.M;
+Ecoupled2D = reshape(Ecoupled,[5,5]); % back to 2D
 
 %figure(); imagesc(abs(inputCoupling.E)); axis image; title('Original')
 %figure(); imagesc(abs(E2pup)); axis image; title('E2pup')
-figure(); imagesc(abs(inputCoupling.E - E2pup)); title('Direct overlap integral vs. Matrix-based coupling'); colorbar;
+figure(); imagesc(abs(inputCoupling.E - Ecoupled2D)); title('Direct overlap integral vs. Matrix-based coupling'); colorbar;
 
 %inputCoupling.E = inputCoupling.A.*exp(2*pi*1i*(pupil.xx * theta_sky(1) + pupil.yy * theta_sky(2))/pupil.D)/pupil.Area
     
 Elyot = ideal_coronagraph_pupil_to_lyot(N2, ideal_coronagraph, inputCoupling);
-Elyot_full = reshape(transpose(Elyot(:))*conj(inputCoupling.M),[1024,1024]);
+Elyot_full = reshape(transpose(Elyot(:))*transpose(conj(inputCoupling.M)),[1024,1024]);
 sci.E = 1i*zoomFFT_realunits(pupil.x, pupil.y, Elyot, sci.x, sci.y, sci.f, sci.lambda);
 
 figure(7)

@@ -14,16 +14,16 @@ for k = 1:N_modes
     v = 1/(pupil.D/2) * pupil.A.*Zernike2D_complex_norm(n,m, pupil.rr/(pupil.D/2), pupil.ttheta); % normalized Zernike mode, times the aperture
     %v1D = v(:); %reshape(v, prod(size(v)),1);
 
-    [a b] = size(inputCoupling.array);
+    % [a b] = size(inputCoupling.array);
+    % for ia = 1:a
+    %     for ib  = 1:b
+    %         v_subap(ia,ib) = input_coupling(v,inputCoupling.array{ia,ib},pupil);
+    %     end
+    % end 
+    % v1D = v_subap(:); 
+    v1D = transpose(input_coupling_field(v,inputCoupling.M)); % applyg input coupling to subarray
+    v_subap = reshape(v1D,size(inputCoupling.array));
 
-    for ib = 1:a
-        for ia = 1:b
-            v_subap(ib,ia) = input_coupling(v,inputCoupling.array{ib,ia},pupil);
-        end
-    end
-    
-    v1D = v_subap(:); 
-    
     % Orthogonalize
     if k > 1
         v1D = v1D - V*(V'*v1D);

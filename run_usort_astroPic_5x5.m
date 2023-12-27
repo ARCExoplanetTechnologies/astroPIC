@@ -27,8 +27,8 @@ N2 = 6; %order of the optimal coronagraph
 pupil = pupil_generate('pupil_offaxis_1024.fits', 1, 'circumscribed', 'vertex-centered'); % second argument is pupil diameter
 
 % Define input coupling
-params.inputCoupling.Nlensx = 5;
-params.inputCoupling.Nlensy = 5;
+params.inputCoupling.Nlensx = 1024;
+params.inputCoupling.Nlensy = 1024;
 params.inputCoupling.sigma = 1; % Gaussian mode
 params.inputCoupling.lensD = pupil.D/params.inputCoupling.Nlensx;
 params.inputCoupling.lensShape = 'rectangular'; % choices are 'rectangular', 'circular', or 'none' (subaperture shape; with none there is overlap between Gaussian tails)
@@ -60,19 +60,30 @@ ideal_coronagraph_draw_modes(ideal_coronagraph, 3, 4); % second and third argume
 theta_sky = [0.5 0.5]; % angle of off-axis point source
 
 % create tip/tilt
-%pupil.E = pupil.A.*exp(2*pi*1i*(pupil.xx * theta_sky(1) + pupil.yy * theta_sky(2))/pupil.D)/sqrt(pupil.Area); % energy normalized
 pupil.E = pupil.A.*exp(2*pi*1i*(pupil.xx * theta_sky(1) + pupil.yy * theta_sky(2))/pupil.D)/pupil.Area; % contrast units
 
 [a b] = size(inputCoupling.array);
+lensInd = 1;
 for ia = 1:a
     for ib = 1:b
-        inputCoupling.E(ia,ib) = input_coupling(pupil.E,inputCoupling.array{ia,ib},pupil);
+        Eb = inputCoupling.array{ib,ia};
+        inputCoupling.E(ib,ia) = input_coupling(pupil.E,Eb,pupil);
+        inputCoupling.M(lensInd,:) = Eb(:)./norm(Eb(:),2);
+        lensInd = lensInd + 1;
     end
 end
+
+E2 = transpose(conj(pupil.E(:))/norm(pupil.E(:),2))*transpose(inputCoupling.M);
+E2pup = reshape(E2,[5,5])
+
+figure(); imagesc(abs(inputCoupling.E)); axis image; title('Original')
+figure(); imagesc(abs(E2pup)); axis image; title('E2pup')
+
 
 %inputCoupling.E = inputCoupling.A.*exp(2*pi*1i*(pupil.xx * theta_sky(1) + pupil.yy * theta_sky(2))/pupil.D)/pupil.Area
     
 Elyot = ideal_coronagraph_pupil_to_lyot(N2, ideal_coronagraph, inputCoupling);
+Elyot_full = reshape(transpose(Elyot(:))*conj(inputCoupling.M),[1024,1024]);
 sci.E = 1i*zoomFFT_realunits(pupil.x, pupil.y, Elyot, sci.x, sci.y, sci.f, sci.lambda);
 
 figure(7)
@@ -85,13 +96,10 @@ ideal_coronagraph.Tc = ideal_coronagraph_Tc(ideal_coronagraph);
 ideal_coronagraph_Tc_display(ideal_coronagraph, sci, 5, 6, 1); 
 
 
-
 %% create tip/tilt test profile
 Narr = 21;
 tiltArr = linspace(0,0,Narr)
-%tipArr = linspace(0,2.5,Narr)
 tipArr = logspace(-4,log10(2.5),Narr)
-
 
 for iArr = 1:Narr
     thisTilt = tiltArr(iArr);

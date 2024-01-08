@@ -1,0 +1,31 @@
+args: {}
+
+description:
+    name: astroPIC_usort_offax
+
+telescope:
+  baseline: pupil_offaxis_1024
+
+coronagraph_input_plane:
+  magnification_from_telescope: 1
+
+coronagraph_output_planes:
+  science_path:
+    magnification_from_coronagraph_input_plane: 1
+
+implementation:
+  language: matlab
+  directory: astroPIC
+
+design_info:
+  center_wavelength: 1.55  # um
+  relative_bandpass: .inf  # fraction
+  inner_working_angle: 0.5  # lam_0/D
+  outer_working_angle: .inf  # lam_0/D
+
+  dark_zone:
+    geometry: annular
+    inner_radius: 1.3     # lambda_0/D
+    outer_radius: 2.5  # lambda_0/D
+
+system_parameters: {}

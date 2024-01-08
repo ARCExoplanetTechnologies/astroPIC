@@ -23,12 +23,13 @@ addpath(idealCoroPath);
 addpath(elementsPath);
 
 
-N2 = 6; %order of the optimal coronagraph
 
 % Define pupil plane and telescope aperture
 pupil = pupil_generate('pupil_offaxis_1024.fits', 1, 'circumscribed', 'vertex-centered'); % second argument is pupil diameter
 
 % Define input coupling
+params.N2 = 6; %order of the optimal coronagraph
+
 params.inputCoupling.N = length(pupil.A); % number of samples across pupil
 params.inputCoupling.Nlensx = 5;
 params.inputCoupling.Nlensy = 5;
@@ -57,7 +58,7 @@ sci.lambda = 1;
 sci.flD = sci.f*sci.lambda/pupil.D;
 
 disp('Generating coronagraph...'); 
-ideal_coronagraph = ideal_coronagraph_subaperture_generate(N2, pupil, inputCoupling, sci);
+ideal_coronagraph = ideal_coronagraph_subaperture_generate(params.N2, pupil, inputCoupling, sci);
 ideal_coronagraph_draw_modes(ideal_coronagraph, 3, 4); % second and third arguments are figure numbers
 
 %% Compute off-axis PSF
@@ -66,28 +67,41 @@ theta_sky = [0 0]; % angle of off-axis point source
 % create tip/tilt
 pupil.E = pupil.A.*exp(2*pi*1i*(pupil.xx * theta_sky(1) + pupil.yy * theta_sky(2))/pupil.D)/pupil.Area; % contrast units
 
-Ecoupled = transpose(conj(pupil.E(:))/norm(pupil.E(:),2))*inputCoupling.M; %coupling to 5x5 using M
+%Ecoupled = transpose(conj(pupil.E(:))/norm(pupil.E(:),2))*inputCoupling.M; %coupling to 5x5 using M
+Ecoupled = transpose(conj(pupil.E(:)))*inputCoupling.M; %coupling to 5x5 using M
 Ecoupled2D = reshape(Ecoupled,[params.inputCoupling.Nlensx,params.inputCoupling.Nlensy]); % conver to 2D
-EinvCoupled = transpose(Ecoupled(:))*transpose(conj(inputCoupling.M)); % apply the adjoint operator
+EinvCoupled = transpose(Ecoupled(:))*transpose(conj(inputCoupling.M)); % apply the adjoint operator to convert back to original sampling
 EinvCoupled2D = reshape(EinvCoupled,[params.inputCoupling.N,params.inputCoupling.N]); % convert to 2D
 
 figure(); imagesc(abs(Ecoupled2D)); title('abs(Ecoupled), 5x5')
 figure(); imagesc(abs(EinvCoupled2D)); title('abs(EinvCoupled), 1024x1024')
 
 inputCoupling.E = Ecoupled2D;
-Elyot = ideal_coronagraph_pupil_to_lyot(N2, ideal_coronagraph, inputCoupling);
+Elyot = ideal_coronagraph_pupil_to_lyot(params.N2, ideal_coronagraph, inputCoupling);
 Elyot_full = reshape(transpose(Elyot(:))*transpose(conj(inputCoupling.M)),[1024,1024]);
-sci.E = 1i*zoomFFT_realunits(pupil.x, pupil.y, Elyot, sci.x, sci.y, sci.f, sci.lambda);
+sci.E = 1i*zoomFFT_realunits(pupil.x, pupil.y, Elyot_full, sci.x, sci.y, sci.f, sci.lambda);
+sci.I = abs(sci.E).^2;
+sci.Ecalib = 1i*zoomFFT_realunits(pupil.x, pupil.y, pupil.E , sci.x, sci.y, sci.f, sci.lambda);
+sci.Icalib = abs(sci.Ecalib.^2);
+sci.I0 = max(sci.Icalib(:))
+sci.Icalibnorm = sci.Icalib / sci.I0;
+sci.Inorm = sci.I / sci.I0;
 
 figure(7)
 imagesc(sci.x, sci.y, abs(sci.E).^2); 
 xlabel('\theta_{sci}'); ylabel('\theta_{sci}'); axis image; colorbar;
 title(sprintf('Off-axis PSF for \\theta_{sky}=(%0.1f,%0.1f)', theta_sky(1), theta_sky(2))); 
 
+figure(6)
+imagesc(sci.x, sci.y, sci.Inorm); colorbar; caxis([-5 0])
+
+figure(8)
+imagesc(sci.x, sci.y, log10(sci.Icalibnorm)); colorbar; caxis([-5 0])
+
 %% create tip/tilt test array
 Narr = 21;
-tiltArr = linspace(0,0,Narr)
-tipArr = logspace(-4,log10(2.5),Narr)
+tiltArr = linspace(0,0,Narr);
+tipArr = logspace(-4, log10(2.5), Narr);
 
 for iArr = 1:Narr
     thisTilt = tiltArr(iArr);
@@ -95,9 +109,10 @@ for iArr = 1:Narr
 
     pupil.E = pupil.A.*exp(2*pi*1i*(pupil.xx * thisTilt + pupil.yy * thisTip)/pupil.D)/pupil.Area; % contrast units
 
-    inputCoupling.E = reshape(transpose(conj(pupil.E(:))/norm(pupil.E(:),2))*inputCoupling.M, [params.inputCoupling.Nlensx,params.inputCoupling.Nlensy]); %couple to lenslet array each tip/tilt
+    %inputCoupling.E = reshape(transpose(conj(pupil.E(:))/norm(pupil.E(:),2))*inputCoupling.M, [params.inputCoupling.Nlensx,params.inputCoupling.Nlensy]); %couple to lenslet array each tip/tilt
+    inputCoupling.E = reshape(transpose(conj(pupil.E(:)))*inputCoupling.M, [params.inputCoupling.Nlensx,params.inputCoupling.Nlensy]); %couple to lenslet array each tip/tilt
 
-    Elyot = ideal_coronagraph_pupil_to_lyot(N2, ideal_coronagraph, inputCoupling);
+    Elyot = ideal_coronagraph_pupil_to_lyot(params.N2, ideal_coronagraph, inputCoupling);
     sci.E = 1i*zoomFFT_realunits(pupil.x, pupil.y, Elyot, sci.x, sci.y, sci.f, sci.lambda);
 
     IlyotArr(iArr) = sum(abs(Elyot).^2,'all');

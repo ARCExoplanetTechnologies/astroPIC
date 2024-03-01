@@ -26,8 +26,8 @@ pupil.tt = atan2(pupil.yy, pupil.xx);
 
 
 PIC.inputCoupling.N = length(pupil.A); % number of samples across pupil
-PIC.inputCoupling.Nlensx = 10;
-PIC.inputCoupling.Nlensy = 10;
+PIC.inputCoupling.Nlensx = 5;
+PIC.inputCoupling.Nlensy = 5;
 PIC.inputCoupling.sigma = 1; % Gaussian mode
 PIC.inputCoupling.lensD = pupil.D/PIC.inputCoupling.Nlensx;
 PIC.inputCoupling.lensShape = 'rectangular'; % choices are 'rectangular', 'circular', or 'none' (subaperture shape; with none there is overlap between Gaussian tails)
@@ -153,10 +153,9 @@ for j = 1:length(offset_array)
     order4_term = sum(abs(Output(4:end)).^2)/Energy;
     order6_term = sum(abs(Output(7:end)).^2)/Energy;
 
-    if mod(offset, 0.1) == 0
-        fprintf('offset = %e l/D.\n', offset);
-        fprintf('piston = %e. 2nd = %e. 4th = %e. 6th = %e.\n', piston_term, order2_term, order4_term, order6_term);
-    end
+    if mod(offset, 0.1
+    fprintf('offset = %e l/D.\n', offset);
+    fprintf('piston = %e. 2nd = %e. 4th = %e. 6th = %e.\n', piston_term, order2_term, order4_term, order6_term);
 
     piston(j) = piston_term;
     thpt_order2(j) = order2_term;
@@ -164,35 +163,4 @@ for j = 1:length(offset_array)
     thpt_order6(j) = order6_term;
 end
 
-small_oa = 1e-4 : 1e-3 : 1e-1;
-contrast_order2 = zeros(size(small_oa));
-contrast_order4 = zeros(size(small_oa));
-contrast_order6 = zeros(size(small_oa));
-for j = 1:length(small_oa)
-    offset = small_oa(j);
-    E_Field = pupil.A.*exp(2*pi*1i*(pupil.xx * offset)/pupil.D)/pupil.Area; % contrast units
-    Energy = sum(sum(abs(E_Field).^2));
 
-    Coupled_Vector = PIC.inputCoupling.M*reshape(E_Field.',[],1);
-    Coupled_Vector = Coupled_Vector(Illuminated_Modes);
-
-    [Output, ~, ~, ~, ~] = Propagate_Ideal_Mesh(PIC, Coupled_Vector);
-
-    order2_term = mean(abs(Output(2:end)).^2)/(Energy*piston(1));
-    order4_term = mean(abs(Output(4:end)).^2)/(Energy*piston(1));
-    order6_term = mean(abs(Output(7:end)).^2)/(Energy*piston(1));
-
-    if mod(j-1, 10) == 0
-        fprintf('offset = %e l/D.\n', offset);
-        fprintf('Contrast 2nd = %e. 4th = %e. 6th = %e.\n', order2_term, order4_term, order6_term);
-    end
-
-    contrast_order2(j) = order2_term;
-    contrast_order4(j) = order4_term;
-    contrast_order6(j) = order6_term;
-end
-
-figure();
-plot(offset_array, piston, offset_array, thpt_order2, offset_array, thpt_order4, offset_array, thpt_order6);
-figure();
-loglog(small_oa, contrast_order2, small_oa, contrast_order4, small_oa, contrast_order6);

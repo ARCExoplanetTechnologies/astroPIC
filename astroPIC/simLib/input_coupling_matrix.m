@@ -1,7 +1,7 @@
 %% computes matrix M for direct computation of input couplign \int Ea^* Eb dA / sqrt(|\int Ea dA|^2 + |\int Eb dA|^2) 
 % assumes Ea and Eb are provided over the same grid
 
-function inputCoupling_matrixOut = input_coupling_matrix(inputCoupling,pupil)
+function inputCoupling_matrixOut = input_coupling_matrix(inputCoupling)
 
 [a b] = size(inputCoupling.array);
 lensInd = 1;
@@ -13,5 +13,5 @@ for ia = 1:a
     end
 end
 
-inputCoupling_matrixOut = transpose(inputCoupling_matrix);
+inputCoupling_matrixOut = inputCoupling_matrix;%transpose(inputCoupling_matrix);
 
